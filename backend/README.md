@@ -97,6 +97,13 @@ Three that matter in any deployment:
 - `JWT_SECRET_KEY` — the default is public in this repo; anyone with it can
   mint valid tokens.
 
+## Deploying
+
+Merging to `main` deploys automatically: CI runs, then migrations are
+applied, then Render releases the new image. See
+[`../infra/README.md`](../infra/README.md) for the pipeline, first-time
+setup, and rollback.
+
 ## Migrations
 
 ```bash

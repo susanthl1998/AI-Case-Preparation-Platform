@@ -28,6 +28,10 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_allow_origins,
+    # Lets Vercel preview deployments call the API — each pull request gets
+    # its own hostname, so an exact allowlist alone would break every
+    # preview. None when VERCEL_PROJECT_SLUG is unset.
+    allow_origin_regex=settings.cors_allow_origin_regex,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

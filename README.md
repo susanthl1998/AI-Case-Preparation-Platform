@@ -118,7 +118,7 @@ everyone at once.
 | [`docs/Architecture/architecture.md`](docs/Architecture/architecture.md) | Decision records (ADR-01…07) and the reasoning behind them |
 | [`docs/Database/database-design.md`](docs/Database/database-design.md) | Schema, tables, and which store owns what |
 | [`docs/Architecture/prd-gap-log.md`](docs/Architecture/prd-gap-log.md) | Gaps and conflicts found in the source requirements |
-| [`docs/deployment.md`](docs/deployment.md) | A worked reference deployment |
+| [`infra/README.md`](infra/README.md) | The live environment: deploy pipeline, setup, rollback |
 | [`docs/source-materials/`](docs/source-materials/) | Original PRD, requirements doc, agile plan, architecture spec |
 
 The FastAPI `/docs` UI is generated from the running code, so when it and

@@ -1,0 +1,59 @@
+# Render Blueprint for the platform API.
+#
+# See infra/README.md for the full deployment runbook.
+#
+# Two choices worth understanding before changing them:
+#
+# `plan: free` — Render's free instances sleep after 15 minutes idle and
+# take about a minute to wake. Fine for a shared test environment; see the
+# keep-warm note in infra/README.md before a live demo.
+#
+# `autoDeploy: false` — deploys are triggered by .github/workflows/deploy.yml
+# *after* CI passes and migrations have been applied. Letting Render deploy
+# straight off a push would race the migration job, and new code can reach
+# the database before the columns it expects exist.
+services:
+  - type: web
+    name: casearena-api
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    plan: free
+    autoDeploy: false
+    healthCheckPath: /health
+    envVars:
+      # PDF bytes live in Postgres — no object-storage vendor needed.
+      # Never "local" here: Render wipes the container filesystem on every
+      # deploy, which would silently delete every uploaded case.
+      - key: STORAGE_BACKEND
+        value: database
+
+      - key: ENVIRONMENT
+        value: production
+      - key: DEBUG
+        value: "false"
+
+      # sync: false means Render prompts for the value and stores it
+      # encrypted, rather than keeping it in this file. Never commit a real
+      # credential here — this repository is public.
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET_KEY
+        sync: false
+
+      # Exact origins allowed to call the API — the production frontend.
+      # JSON array string, not a comma-separated list.
+      - key: CORS_ALLOW_ORIGINS
+        sync: false
+      # Vercel project slug. Setting it also allows that project's preview
+      # deployments, so pull-request previews can call the API without
+      # anyone hand-editing CORS_ALLOW_ORIGINS per branch.
+      - key: VERCEL_PROJECT_SLUG
+        sync: false
+
+      # Only needed once Module 1 starts using Mongo. The service starts
+      # fine without it.
+      - key: MONGODB_URI
+        sync: false
+      - key: MONGODB_DATABASE
+        value: casearena
