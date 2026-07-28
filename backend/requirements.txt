@@ -1,0 +1,27 @@
+fastapi==0.115.0
+uvicorn[standard]==0.30.6
+pydantic==2.9.2
+pydantic-settings==2.5.2
+python-multipart==0.0.9
+
+# PostgreSQL — relational source of truth (accounts, profiles, cases)
+sqlalchemy==2.0.35
+alembic==1.13.2
+psycopg2-binary==2.9.9
+
+# MongoDB — document store for chat transcripts / AI evaluation (Module 1).
+# Optional at runtime: app/database/mongodb.py imports it lazily, so the
+# service still starts when MONGODB_URI is unset.
+pymongo==4.10.1
+
+# Auth
+pyjwt==2.9.0
+bcrypt==4.2.0
+email-validator==2.2.0
+
+# Object storage (used only when STORAGE_BACKEND=s3)
+boto3==1.35.36
+
+# Testing
+pytest==8.3.3
+httpx==0.27.2

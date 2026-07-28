@@ -1,0 +1,14 @@
+# Binary formats must never go through Git's CRLF conversion. The seed PDF
+# in particular is pure ASCII with no NUL bytes, so Git's content heuristic
+# treats it as text and rewrites its line endings — which shifts every byte
+# offset in the PDF's xref table and silently corrupts the file.
+*.pdf binary
+*.docx binary
+*.xlsx binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.woff binary
+*.woff2 binary

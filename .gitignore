@@ -2,12 +2,29 @@
 __pycache__/
 *.pyc
 .venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
 
 # Node
 node_modules/
 
-# Environment
+# Environment — .env.example is the only env file that belongs in git.
+# The negation must come last, or the .env.* rule re-ignores it.
 .env
+.env.*
+!.env.example
+
+# Local databases (SQLite smoke-test files)
+*.db
+*.sqlite3
+
+# Locally uploaded case PDFs (STORAGE_BACKEND=local)
+backend/storage/uploads/**
+!backend/storage/uploads/.gitkeep
 
 # IDE
 .vscode/
@@ -19,3 +36,4 @@ node_modules/
 # Build
 dist/
 build/
+.vite/
