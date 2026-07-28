@@ -1,0 +1,101 @@
+services:
+
+  # ---------------------------
+  # PostgreSQL
+  # ---------------------------
+  db:
+    image: postgres:16-alpine
+    container_name: casearena-db
+
+    environment:
+      POSTGRES_USER: casearena
+      POSTGRES_PASSWORD: casearena
+      POSTGRES_DB: casearena
+
+    ports:
+      - "5432:5432"
+
+    volumes:
+      - casearena_pg_data:/var/lib/postgresql/data
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U casearena"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+
+  # ---------------------------
+  # MongoDB
+  # ---------------------------
+  mongo:
+    image: mongo:7
+    container_name: casearena-mongo
+
+    ports:
+      - "27017:27017"
+
+    volumes:
+      - casearena_mongo_data:/data/db
+
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+
+  # ---------------------------
+  # FastAPI Backend
+  # ---------------------------
+  api:
+    build:
+      context: ./backend
+
+    container_name: casearena-api
+
+    depends_on:
+      db:
+        condition: service_healthy
+      mongo:
+        condition: service_healthy
+
+    environment:
+      DATABASE_URL: postgresql+psycopg2://casearena:casearena@db:5432/casearena
+      MONGODB_URI: mongodb://mongo:27017
+      MONGODB_DATABASE: casearena
+
+      JWT_SECRET_KEY: local-dev-secret
+
+      CORS_ALLOW_ORIGINS: '["http://localhost:5173"]'
+
+    ports:
+      - "8000:8000"
+
+    volumes:
+      - ./backend:/app
+
+    restart: unless-stopped
+
+
+  # ---------------------------
+  # React Frontend
+  # ---------------------------
+  frontend:
+    build:
+      context: ./frontend
+
+    container_name: casearena-frontend
+
+    depends_on:
+      - api
+
+    ports:
+      - "5173:80"
+
+    restart: unless-stopped
+
+
+volumes:
+  casearena_pg_data:
+  casearena_mongo_data:

@@ -1,0 +1,19 @@
+version: "3.9"
+
+services:
+
+  frontend:
+    build: .
+    ports:
+      - "5173:80"
+
+  api:
+    image: casearena-api
+    ports:
+      - "8000:8000"
+
+  db:
+    image: postgres:16-alpine
+
+  mongo:
+    image: mongo:7
