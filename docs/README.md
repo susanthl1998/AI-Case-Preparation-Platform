@@ -6,7 +6,7 @@
 | [`Architecture/architecture.md`](Architecture/architecture.md) | Decision records (ADR-01…07): what was decided and *why* |
 | [`Architecture/prd-gap-log.md`](Architecture/prd-gap-log.md) | Gaps and conflicts found in the source requirements, and how each was resolved |
 | [`Database/database-design.md`](Database/database-design.md) | Schema, tables, and which store owns what |
-| [`deployment.md`](deployment.md) | A worked reference deployment |
+| [`../infra/README.md`](../infra/README.md) | The live environment: how deploys work, first-time setup, rollback |
 | [`Sprints/sprint-plan.md`](Sprints/sprint-plan.md) | *(empty)* |
 | [`UML/system-design.md`](UML/system-design.md) | *(empty)* |
 | [`source-materials/`](source-materials/) | Original PRD, requirements-gathering doc, agile plan, architecture spec |

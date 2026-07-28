@@ -5,9 +5,28 @@ provide. Nothing here hardcodes a secret — local dev falls back to
 clearly-fake defaults so the app boots without a `.env` file, but every
 fallback is something you would never accept in staging/production.
 """
+import re
 from functools import lru_cache
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+def vercel_origin_regex(project_slug: str) -> str:
+    """Regex matching a Vercel project's production and preview origins.
+
+    Vercel gives every pull request its own hostname
+    (``<project>-git-<branch>-<team>.vercel.app``), so an exact-match CORS
+    allowlist blocks every preview deployment: the page loads and then each
+    API call fails. This matches the project's whole hostname family.
+
+    Anchored at both ends, and the slug is escaped, on purpose. An
+    unanchored pattern like ``vercel\\.app`` would also match
+    ``https://evil-vercel.app`` and ``https://vercel.app.attacker.com``,
+    which would hand CORS access to anyone who can register a domain. The
+    slug prefix further keeps it to *this* project rather than every app
+    hosted on Vercel.
+    """
+    return rf"^https://{re.escape(project_slug)}(-[a-z0-9-]+)?\.vercel\.app$"
 
 
 class Settings(BaseSettings):
@@ -66,6 +85,19 @@ class Settings(BaseSettings):
 
     # CORS — the frontend origin(s) allowed to call this API
     cors_allow_origins: list[str] = ["http://localhost:5173"]
+
+    # Vercel project slug (e.g. "ai-case-prep"). Setting it lets every
+    # preview deployment for that project through CORS automatically;
+    # otherwise each pull request's preview URL would have to be added to
+    # cors_allow_origins by hand, which nobody will remember to do.
+    # Leave blank to disable regex matching entirely.
+    vercel_project_slug: str = ""
+
+    @property
+    def cors_allow_origin_regex(self) -> str | None:
+        if not self.vercel_project_slug:
+            return None
+        return vercel_origin_regex(self.vercel_project_slug)
 
 
 @lru_cache
