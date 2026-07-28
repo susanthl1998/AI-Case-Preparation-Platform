@@ -1,0 +1,57 @@
+# Local development stack: PostgreSQL + MongoDB + the API.
+#
+# Migrations are NOT run automatically on API startup — run
+# `alembic upgrade head` yourself once the database is healthy. That keeps a
+# bad migration from being half-applied by a container restart loop.
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: casearena
+      POSTGRES_PASSWORD: casearena
+      POSTGRES_DB: casearena
+    ports:
+      - "5432:5432"
+    volumes:
+      - casearena_pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U casearena"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  mongo:
+    image: mongo:7
+    ports:
+      - "27017:27017"
+    volumes:
+      - casearena_mongo_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build: .
+    environment:
+      DATABASE_URL: postgresql+psycopg2://casearena:casearena@db:5432/casearena
+      MONGODB_URI: mongodb://mongo:27017
+      MONGODB_DATABASE: casearena
+      JWT_SECRET_KEY: local-dev-secret-not-for-production
+      CORS_ALLOW_ORIGINS: '["http://localhost:5173"]'
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+      # Not service_healthy: Module 2 works without Mongo, so a slow or
+      # failing Mongo should not block the API from starting.
+      mongo:
+        condition: service_started
+    volumes:
+      - ./storage/uploads:/app/storage/uploads
+
+volumes:
+  casearena_pg_data:
+  casearena_mongo_data:
