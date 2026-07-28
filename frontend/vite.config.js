@@ -16,4 +16,14 @@ export default defineConfig({
     host: true,
     allowedHosts: true,
   },
+  test: {
+    environment: "jsdom",
+    globals: true,
+    setupFiles: "./src/test/setup.js",
+    // Tests live next to the code they cover, as *.test.js(x).
+    include: ["src/**/*.test.{js,jsx}"],
+    // Tailwind directives in index.css are meaningless in jsdom and only
+    // slow the run down.
+    css: false,
+  },
 });

@@ -35,15 +35,27 @@ export function clearTokens() {
   localStorage.removeItem(TOKEN_KEYS.refresh);
 }
 
+export const API_BASE_URL = BASE_URL;
+
 export const api = axios.create({ baseURL: BASE_URL });
 
-api.interceptors.request.use((config) => {
+/**
+ * Request interceptor: attach the bearer token when we have one.
+ *
+ * Exported as a named function so it can be unit-tested directly rather
+ * than by reaching into `api.interceptors.request.handlers`, which is
+ * axios internals and would break on an axios upgrade.
+ */
+export function attachAuthHeader(config) {
   const token = getAccessToken();
   if (token) {
+    config.headers = config.headers || {};
     config.headers.Authorization = `Bearer ${token}`;
   }
   return config;
-});
+}
+
+api.interceptors.request.use(attachAuthHeader);
 
 let refreshInFlight = null;
 

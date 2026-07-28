@@ -80,6 +80,25 @@ def client(db_session, tmp_path):
 
 
 @pytest.fixture()
+def raw_client(db_session, tmp_path):
+    """A client that does **not** prefix paths.
+
+    For anything mounted outside the version prefix — the root endpoint and
+    the unversioned ``/health`` that hosting platforms probe.
+    """
+    storage_module._storage_instance = LocalDiskStorage(str(tmp_path / "uploads"))
+
+    def override_get_db():
+        yield db_session
+
+    app.dependency_overrides[get_db] = override_get_db
+    with TestClient(app) as test_client:
+        yield test_client
+    app.dependency_overrides.clear()
+    storage_module._storage_instance = None
+
+
+@pytest.fixture()
 def settings():
     """The single cached Settings instance — mutate attributes on it
     directly (see module docstring) rather than reassigning."""

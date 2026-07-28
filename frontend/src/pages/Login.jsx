@@ -17,7 +17,9 @@ export default function Login() {
     setSubmitting(true);
     try {
       await login(email, password);
-      const redirectTo = location.state?.from?.pathname || "/dashboard";
+      // Land on the module launcher, not straight into one module —
+      // there are three now, and which one the user wants is their choice.
+      const redirectTo = location.state?.from?.pathname || "/";
       navigate(redirectTo, { replace: true });
     } catch (err) {
       if (err.response?.status === 423) {

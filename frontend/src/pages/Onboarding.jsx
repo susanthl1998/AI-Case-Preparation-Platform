@@ -29,7 +29,7 @@ export default function Onboarding() {
         target_firm_type: firmType,
         case_preferences: preferences,
       });
-      navigate("/dashboard");
+      navigate("/");
     } catch {
       setError("Could not save your preferences. Please try again.");
     } finally {

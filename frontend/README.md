@@ -1,8 +1,21 @@
 # Frontend
 
-React 18 + Vite + Tailwind CSS. Currently implements Module 2's UI
-(auth, onboarding, dashboard, case repository), built against
+React 18 + Vite + Tailwind CSS, built against
 [`../docs/API/api-spec.md`](../docs/API/api-spec.md).
+
+After logging in, users land on a launcher showing the platform's three
+modules. Module 2 (CaseRepository) is implemented; Modules 1 and 3 render
+a placeholder until their teams fill them in.
+
+## Adding your module (Teams 1 and 3)
+
+Everything is driven by **`src/modules/registry.js`**. Build your screens
+under `src/modules/<yourModule>/`, point your registry entry's `Component`
+at your landing screen, and flip `status` to `"live"`. The launcher card,
+the routes, and the navbar all follow automatically — you should not need
+to edit `App.jsx`, `Home.jsx`, or `Navbar.jsx`.
+
+Full walkthrough: [`../CONTRIBUTING.md`](../CONTRIBUTING.md).
 
 ## Requirements
 
@@ -22,6 +35,20 @@ dev server's origin. The defaults on both sides already match
 
 `npm install` generates `package-lock.json` on first run — commit it, so
 CI can switch from `npm install` to `npm ci` with real caching.
+
+## Tests
+
+```bash
+npm test           # Vitest, single run — what CI runs
+npm run test:watch # re-run on change while developing
+```
+
+Vitest + React Testing Library, in jsdom. Tests live next to the code they
+cover as `*.test.js` / `*.test.jsx`.
+
+`src/modules/registry.test.js` is the one to be careful with: it pins the
+three-module contract (names, teams, unique routes). If it fails, a module
+has probably fallen out of the launcher.
 
 ## Building
 
@@ -54,15 +81,21 @@ one in-flight refresh rather than firing several.
 ```
 src/
   main.jsx              Entry — router + AuthProvider
-  App.jsx               Route table (public vs. ProtectedRoute)
-  api/client.js         Axios instance, tokens, refresh-on-401
+  App.jsx               Route table; module routes come from the registry
+  api/client.js         Axios instance, tokens, refresh-on-401, /api/v1
   context/AuthContext.jsx
+  modules/
+    registry.js         ← the three modules; start here
+    ModulePlaceholder.jsx  Shared "in development" screen
+    casePrep/           Module 1 (Team 1)
+    peer2peer/          Module 3 (Team 3)
   components/
     ProtectedRoute.jsx  Redirects to /login when unauthenticated
-    Navbar.jsx
+    Navbar.jsx          Module links, generated from the registry
     CaseCard.jsx
     EmptyState.jsx      "No cases match" + reset filters (US-04 AC)
   pages/
+    Home.jsx            Post-login module launcher
     Signup.jsx / Login.jsx
     Onboarding.jsx      Target firm type (mandatory) + preferences
     Dashboard.jsx       Personalized recommendations (FR-04)
@@ -70,14 +103,8 @@ src/
     CaseDetail.jsx      View, share/withdraw, delete, admin moderate
     Upload.jsx          PDF upload; server-side validation is authoritative
     Profile.jsx         Edit profile, delete account
+  test/setup.js         Vitest setup (jest-dom matchers, cleanup)
 ```
-
-## Adding pages for another module
-
-Add your pages under `src/pages/` and routes in `App.jsx`. Reuse
-`src/api/client.js` rather than creating a second axios instance —
-otherwise your requests won't carry auth tokens or benefit from the refresh
-logic.
 
 ## Known limitations (v1.0, matching the PRD's non-goals)
 

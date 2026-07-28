@@ -52,6 +52,46 @@ The reason is practical rather than aesthetic: logic in a service can be
 called by scripts, background jobs, and other modules; logic in a route
 handler can only be reached over HTTP.
 
+## Adding your module's UI
+
+The frontend has the same shape as the backend: one registry, and you
+never touch the router.
+
+`frontend/src/modules/registry.js` declares all three modules. The
+post-login launcher, the routes, and the navbar are all generated from it.
+
+1. Build your screens under `frontend/src/modules/<yourModule>/`.
+   Placeholder landing components are already there —
+   `casePrep/CasePrepHome.jsx` and `peer2peer/Peer2PeerHome.jsx`. Replace
+   the body of yours.
+2. In `registry.js`, point your entry's `Component` at your landing screen
+   and change `status` from `"planned"` to `"live"`.
+3. Extra screens go in that entry's `routes` array:
+
+   ```js
+   routes: [
+     { path: "/case-prep/session/:id", Component: SessionScreen },
+   ]
+   ```
+
+That's the whole integration. Do not edit `App.jsx`, `Home.jsx`, or
+`Navbar.jsx` — they read the registry, so editing them means your changes
+and another team's conflict for no reason.
+
+Every module route is already behind authentication, so your components
+can assume a logged-in user via `useAuth()`.
+
+**Always call the API through `src/api/client.js`:**
+
+```js
+import api from "../../api/client.js";
+const { data } = await api.get("/case-prep/status");
+```
+
+It attaches the bearer token, refreshes it transparently on a 401, and
+adds the `/api/v1` prefix. A bare `fetch` gets none of that, and the bug
+shows up as random logouts.
+
 ## Databases
 
 **PostgreSQL** is the relational source of truth — accounts, profiles, case
@@ -112,17 +152,54 @@ to get around that.
 
 ## Tests
 
+**Every pull request runs the full suite. It must be green to merge.**
+That is the only thing standing between three teams working in parallel
+and a broken `main` on demo day.
+
 ```bash
-cd backend && pytest
+cd backend && pytest        # in-memory SQLite, no services needed
+cd frontend && npm test     # Vitest + React Testing Library
 ```
 
-Tests run against in-memory SQLite, one database per test, no external
-services needed. CI runs the same suite plus migrations against real
-Postgres on every pull request.
+CI additionally applies the migrations to a real PostgreSQL service,
+checks there is exactly one Alembic head, and runs a production frontend
+build — all things a passing local suite can still get wrong.
 
-Add tests for your module under `backend/tests/`. When you change shared
-code (`main.py`, `core/`, `database/`), run the whole suite — that's what
-catches breakage in another team's module before they find it.
+### What to test
+
+Put backend tests in `backend/tests/`, and frontend tests next to the code
+they cover as `*.test.js` / `*.test.jsx`.
+
+Cover at minimum:
+
+- **Every endpoint you add** — the success path, the auth failure (401),
+  and the "not yours" failure (403/404) where ownership applies.
+- **Any component with a condition in it** — both branches. A component
+  that only ever renders one way is not worth a test.
+- **The bug you just fixed** — a test that fails before your fix and
+  passes after is the only proof it is actually fixed, and the only thing
+  stopping it coming back.
+
+### Tests that protect other teams
+
+Some existing tests are deliberately about the *shape* of the app rather
+than any one feature. Do not delete them to make a change pass — if one
+fails, either your change broke another team's contract, or the contract
+genuinely moved and the test plus `docs/API/api-spec.md` need updating in
+the same commit.
+
+| Test | Catches |
+|---|---|
+| `backend/tests/test_app_wiring.py` | A module's router silently unregistered; a moved URL prefix; two teams claiming one path; a protected endpoint losing its auth dependency |
+| `frontend/src/modules/registry.test.js` | A module dropped from the launcher, duplicate routes, a malformed registry entry |
+| CI's single-head check | Two teams branching migrations from the same parent |
+
+### When you change shared code
+
+`main.py`, `core/`, `database/`, `api/v1/__init__.py`, `registry.js`,
+`App.jsx`, and `client.js` are shared. Run **both** suites in full before
+opening the PR, and say in the description which shared file you touched
+so the other teams know to pull.
 
 ## Documentation
 
