@@ -6,13 +6,20 @@ on:
   pull_request:
     branches: [main]
 
-# Shared repo, three teams: this runs on every PR so one module's change
-# can't silently break another's. If you add a module with its own test
-# directory, extend the backend job rather than adding a parallel one, so
-# there is a single place to look when CI is red.
+# Shared repo, three teams. Every job here runs on every pull request so
+# one module's change cannot silently break another's — which is the whole
+# reason this pipeline exists.
+#
+# If you add a module with its own tests, extend the existing jobs rather
+# than adding parallel ones, so there is a single place to look when CI is
+# red.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   backend:
-    name: Backend tests (FastAPI + Postgres)
+    name: Backend tests
     runs-on: ubuntu-latest
 
     services:
@@ -46,19 +53,33 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      # Catches import errors and bad migrations before the suite runs,
-      # and verifies the schema applies to real Postgres rather than the
-      # SQLite the tests use.
-      - name: Run Alembic migrations against Postgres
+      # All three teams share one Alembic history. Two migrations branched
+      # from the same parent produce multiple heads, and then `alembic
+      # upgrade head` fails in EVERY environment — not just the branch that
+      # caused it. Catching it on the PR keeps that blast radius at zero.
+      - name: Check for a single migration head
+        run: |
+          heads=$(alembic heads 2>/dev/null | grep -c "(head)" || true)
+          echo "migration heads: $heads"
+          if [ "$heads" -ne 1 ]; then
+            echo "::error::Expected exactly 1 migration head, found $heads."
+            echo "Rebase on main and set your migration's down_revision to the current head."
+            alembic heads
+            exit 1
+          fi
+
+      # Applying migrations to real Postgres catches what SQLite silently
+      # tolerates: native enum types, stricter typing, JSON semantics.
+      - name: Apply migrations to Postgres
         env:
           DATABASE_URL: postgresql+psycopg2://casearena:casearena@localhost:5432/casearena_test
         run: alembic upgrade head
 
-      - name: Run test suite (SQLite, fast + isolated per test)
+      - name: Run tests
         run: pytest -v
 
   frontend:
-    name: Frontend build
+    name: Frontend tests and build
     runs-on: ubuntu-latest
 
     defaults:
@@ -78,5 +99,11 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      - name: Run tests
+        run: npm test
+
+      # A passing test suite still doesn't prove the app compiles for
+      # production — Vitest transforms modules differently from a real
+      # build, so this catches import and syntax errors tests would miss.
       - name: Build
         run: npm run build

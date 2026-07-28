@@ -68,6 +68,15 @@ lockout), `test_profile.py` (onboarding, dashboard ordering), `test_cases.py`
 (US-04 browse/search/filter, US-04B upload/share, ownership, admin
 moderation), `test_storage.py` (storage backends).
 
+`test_app_wiring.py` is different in kind: it asserts the *shape* of the
+API rather than any feature — that all three modules are mounted, that
+routes stay under `/api/v1`, that no two modules claim the same path, that
+the documented endpoints still exist, and that protected routes still
+reject anonymous callers. Those are the failures another team's change can
+cause without breaking any of their own tests. Don't delete an assertion
+there to make a change pass; if it fails, either the change is wrong or the
+contract moved and `docs/API/api-spec.md` needs updating too.
+
 Note that `tests/conftest.py` prefixes every request with `/api/v1`, so
 tests name endpoints the way the API spec documents them (`/auth/login`).
 

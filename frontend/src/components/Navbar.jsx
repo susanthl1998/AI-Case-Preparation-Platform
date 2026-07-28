@@ -1,5 +1,10 @@
+/**
+ * Top navigation. Module links come from `src/modules/registry.js`, so a
+ * team enabling their module gets a nav entry automatically.
+ */
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
+import { MODULES } from "../modules/registry.js";
 
 export default function Navbar() {
   const { user, logout } = useAuth();
@@ -18,15 +23,18 @@ export default function Navbar() {
         </Link>
         {user && (
           <div className="flex items-center gap-4 text-sm">
-            <Link to="/dashboard" className="text-slate-600 hover:text-slate-900">
-              Dashboard
+            <Link to="/" className="text-slate-600 hover:text-slate-900">
+              Modules
             </Link>
-            <Link to="/repository" className="text-slate-600 hover:text-slate-900">
-              Repository
-            </Link>
-            <Link to="/upload" className="text-slate-600 hover:text-slate-900">
-              Upload
-            </Link>
+            {MODULES.map((module) => (
+              <Link
+                key={module.id}
+                to={module.path}
+                className="text-slate-600 hover:text-slate-900"
+              >
+                {module.name}
+              </Link>
+            ))}
             <Link to="/profile" className="text-slate-600 hover:text-slate-900">
               Profile
             </Link>

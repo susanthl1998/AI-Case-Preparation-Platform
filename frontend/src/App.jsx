@@ -1,14 +1,19 @@
+/**
+ * Route table.
+ *
+ * Module screens are generated from `src/modules/registry.js` — adding a
+ * module's routes means editing the registry, not this file. That keeps
+ * three teams out of each other's way in the router.
+ */
 import { Navigate, Route, Routes } from "react-router-dom";
 import Navbar from "./components/Navbar.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
-import CaseDetail from "./pages/CaseDetail.jsx";
-import Dashboard from "./pages/Dashboard.jsx";
+import { allModuleRoutes } from "./modules/registry.js";
+import Home from "./pages/Home.jsx";
 import Login from "./pages/Login.jsx";
 import Onboarding from "./pages/Onboarding.jsx";
 import Profile from "./pages/Profile.jsx";
-import Repository from "./pages/Repository.jsx";
 import Signup from "./pages/Signup.jsx";
-import Upload from "./pages/Upload.jsx";
 
 export default function App() {
   return (
@@ -20,16 +25,16 @@ export default function App() {
           <Route path="/login" element={<Login />} />
 
           <Route element={<ProtectedRoute />}>
+            <Route path="/" element={<Home />} />
             <Route path="/onboarding" element={<Onboarding />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/repository" element={<Repository />} />
-            <Route path="/cases/:id" element={<CaseDetail />} />
-            <Route path="/upload" element={<Upload />} />
             <Route path="/profile" element={<Profile />} />
+
+            {allModuleRoutes().map(({ path, Component }) => (
+              <Route key={path} path={path} element={<Component />} />
+            ))}
           </Route>
 
-          <Route path="/" element={<Navigate to="/dashboard" replace />} />
-          <Route path="*" element={<Navigate to="/dashboard" replace />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>
     </div>

@@ -208,11 +208,18 @@ request body; returns the updated case.
 Soft-deletes the case (`is_removed: true`) per FR-11 and PRD §11 risk
 mitigation. `403` for non-admin callers.
 
-## Module 1 — AI Trainer (Team 1)
+## Module 1 — CasePrep with AI (Team 1)
 
-Not yet implemented. Router files are scaffolded at
-`backend/app/api/v1/chat.py` and `interview.py`; register them in
-`backend/app/api/v1/__init__.py` and document the endpoints here.
+Mounted under **`/case-prep`** (`backend/app/api/v1/case_prep.py`), already
+registered. Add routes to the `router` in that file and they are served
+immediately.
+
+### `GET /case-prep/status`
+```json
+{ "module": 1, "name": "CasePrep with AI", "team": "Team 1", "status": "not_implemented" }
+```
+A placeholder so the route tree is complete from day one. Replace it —
+only `test_app_wiring.py` depends on it.
 
 Two integration points already exist for you in Module 2:
 
@@ -222,14 +229,23 @@ Two integration points already exist for you in Module 2:
   draws from. Import the taxonomy from `app.core.constants`, not from
   Module 2's ORM models.
 
-## Module 3 — Multiplayer Group Preparation (Team 3)
+`chat.py` and `interview.py` are scaffolded and empty; give each a `router`
+and register it when you build them out.
 
-Not yet implemented and not yet scaffolded — add your own file under
-`backend/app/api/v1/` rather than extending another team's module.
+## Module 3 — Peer2Peer Group (Team 3)
 
-For authentication, validate Module 2's JWTs directly (see
-[Authentication](#authentication)) rather than calling back into it per
-request.
+Mounted under **`/peer2peer`** (`backend/app/api/v1/peer2peer.py`), already
+registered.
+
+### `GET /peer2peer/status`
+```json
+{ "module": 3, "name": "Peer2Peer Group", "team": "Team 3", "status": "not_implemented" }
+```
+Same placeholder arrangement as Module 1.
+
+For authentication, use `Depends(get_current_user)` inside this app; from a
+separate service, validate Module 2's JWTs directly (see
+[Authentication](#authentication)) rather than calling back per request.
 
 ## Error shape
 

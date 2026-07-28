@@ -3,11 +3,16 @@
 An AI-powered case-interview preparation platform for MBA students, built
 as a 30-day MVP by three parallel teams in one shared repository.
 
-| Module | Epic | Team | Status |
-|---|---|---|---|
-| AI Trainer | EPIC-01 | Team 1 | Scaffolded, not implemented |
-| **Account Management & Case Repository** | EPIC-02 | **Team 2** | **Implemented and tested** |
-| Multiplayer Group Preparation | EPIC-03 | Team 3 | Not started |
+| Module | Name in the app | Epic | Team | Status |
+|---|---|---|---|---|
+| 1 | CasePrep with AI | EPIC-01 | Team 1 | Scaffolded — routes live, UI is a placeholder |
+| 2 | **CaseRepository** | EPIC-02 | **Team 2** | **Implemented and tested** |
+| 3 | Peer2Peer Group | EPIC-03 | Team 3 | Scaffolded — routes live, UI is a placeholder |
+
+Logging in lands you on a launcher with all three. Modules 1 and 3 are
+wired end to end — route, navigation, authentication, and a backend
+endpoint — so their teams only need to drop screens and handlers into
+place. See [`CONTRIBUTING.md`](CONTRIBUTING.md) for exactly where.
 
 Module 2 is the foundation the other two build on: both assume a logged-in
 user with a prep profile, and the AI Trainer draws its practice cases from
@@ -30,9 +35,11 @@ backend/
     main.py              FastAPI app: CORS, mounts the v1 router
     api/v1/              HTTP endpoints — one file per feature area
       __init__.py          Router aggregation; where new modules register
+      case_prep.py         /case-prep                            [Module 1]
       auth.py              Signup, login, refresh, verify        [Module 2]
       users.py             Onboarding, profile, dashboard, deletion [Module 2]
       cases.py             Case browse/search/upload/share/moderate [Module 2]
+      peer2peer.py         /peer2peer                            [Module 3]
       health.py            Liveness check
       chat.py              (empty — Module 1)
       interview.py         (empty — Module 1)
@@ -52,7 +59,12 @@ backend/
   tests/                   Pytest suite
   scripts/                 Operational CLIs (e.g. promote_admin.py)
   seed-data/               A sample case PDF for exercising uploads
-frontend/                  React SPA (see frontend/README.md)
+frontend/
+  src/
+    modules/registry.js    The three modules — drives launcher, routes, navbar
+    modules/casePrep/      Module 1 screens (Team 1)
+    modules/peer2peer/     Module 3 screens (Team 3)
+    pages/                 Module 2 screens + the launcher (Home.jsx)
 docs/                      Architecture, API spec, database design
 infra/                     Deployment configuration
 ```
@@ -79,8 +91,16 @@ npm install
 npm run dev                       # http://localhost:5173
 ```
 
-Run the backend tests with `cd backend && pytest` — they use an in-memory
-SQLite database and need no running services.
+## Tests
+
+```bash
+cd backend && pytest        # in-memory SQLite, no services needed
+cd frontend && npm test     # Vitest + React Testing Library
+```
+
+Both run on every pull request and must be green to merge. CI also applies
+the migrations to a real PostgreSQL service, verifies there is exactly one
+Alembic head, and runs a production frontend build.
 
 ## Working in this repo
 
