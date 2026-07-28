@@ -20,8 +20,10 @@ describe("ModulePlaceholder", () => {
       <ModulePlaceholder moduleNumber={3} name="Peer2Peer Group" team="Team 3" description="Study groups." />
     );
     expect(screen.getByText("Peer2Peer Group")).toBeInTheDocument();
-    expect(screen.getByText(/Module 3/)).toBeInTheDocument();
-    expect(screen.getByText(/Team 3/)).toBeInTheDocument();
+    // Match the header line as a whole rather than /Team 3/ on its own:
+    // the body copy ("… Team 3 only needs to drop their screens in") also
+    // contains the team name, so a loose match finds two elements.
+    expect(screen.getByText("Module 3 · Team 3")).toBeInTheDocument();
   });
 
   it("says plainly that the module is unfinished", () => {
