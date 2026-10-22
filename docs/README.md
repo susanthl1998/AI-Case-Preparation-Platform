@@ -2,6 +2,7 @@
 
 | Document | What it covers |
 |---|---|
+| [`HANDOVER.md`](HANDOVER.md) | Module 2 state, outstanding work, and what not to undo — start here if you are picking this up |
 | [`API/api-spec.md`](API/api-spec.md) | Endpoint contract between modules — read this before integrating |
 | [`Architecture/architecture.md`](Architecture/architecture.md) | Decision records (ADR-01…07): what was decided and *why* |
 | [`Architecture/prd-gap-log.md`](Architecture/prd-gap-log.md) | Gaps and conflicts found in the source requirements, and how each was resolved |
